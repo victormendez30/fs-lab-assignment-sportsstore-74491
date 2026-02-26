@@ -38,6 +38,27 @@ try
 
     var app = builder.Build();
 
+    // Logs HTTP request info (method/path/status/elapsed), structured
+    app.UseSerilogRequestLogging();
+
+    // Logs unhandled exceptions with structured request info
+    app.Use(async (context, next) =>
+    {
+        try
+        {
+            await next();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex,
+                "Unhandled exception for {RequestMethod} {RequestPath}",
+                context.Request.Method,
+                context.Request.Path);
+
+            throw;
+        }
+    });
+
     app.UseStaticFiles();
     app.UseSession();
 
