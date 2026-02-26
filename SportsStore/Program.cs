@@ -1,49 +1,74 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using SportsStore.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+// Bootstrap logger: captures startup failures before DI is ready
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateBootstrapLogger();
 
-builder.Services.AddDbContext<StoreDbContext>(opts => {
-    opts.UseSqlServer(
-        builder.Configuration["ConnectionStrings:SportsStoreConnection"]);
-});
+try
+{
+    Log.Information("Starting web host");
 
-builder.Services.AddScoped<IStoreRepository, EFStoreRepository>();
-builder.Services.AddScoped<IOrderRepository, EFOrderRepository>();
+    // Use Serilog for ASP.NET Core logging (configured via appsettings.json)
+    builder.Host.UseSerilog((context, services, loggerConfig) =>
+        loggerConfig.ReadFrom.Configuration(context.Configuration)
+                    .ReadFrom.Services(services));
 
-builder.Services.AddRazorPages();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession();
-builder.Services.AddScoped<Cart>(sp => SessionCart.GetCart(sp));
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-builder.Services.AddServerSideBlazor();
+    builder.Services.AddControllersWithViews();
 
-var app = builder.Build();
+    builder.Services.AddDbContext<StoreDbContext>(opts =>
+    {
+        opts.UseSqlServer(
+            builder.Configuration["ConnectionStrings:SportsStoreConnection"]);
+    });
 
-app.UseStaticFiles();
-app.UseSession();
+    builder.Services.AddScoped<IStoreRepository, EFStoreRepository>();
+    builder.Services.AddScoped<IOrderRepository, EFOrderRepository>();
 
-app.MapControllerRoute("catpage",
-    "{category}/Page{productPage:int}",
-    new { Controller = "Home", action = "Index" });
+    builder.Services.AddRazorPages();
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSession();
+    builder.Services.AddScoped<Cart>(sp => SessionCart.GetCart(sp));
+    builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+    builder.Services.AddServerSideBlazor();
 
-app.MapControllerRoute("page", "Page{productPage:int}",
-    new { Controller = "Home", action = "Index", productPage = 1 });
+    var app = builder.Build();
 
-app.MapControllerRoute("category", "{category}",
-    new { Controller = "Home", action = "Index", productPage = 1 });
+    app.UseStaticFiles();
+    app.UseSession();
 
-app.MapControllerRoute("pagination",
-    "Products/Page{productPage}",
-    new { Controller = "Home", action = "Index", productPage = 1 });
+    app.MapControllerRoute("catpage",
+        "{category}/Page{productPage:int}",
+        new { Controller = "Home", action = "Index" });
 
-app.MapDefaultControllerRoute();
-app.MapRazorPages();
-app.MapBlazorHub();
-app.MapFallbackToPage("/admin/{*catchall}", "/Admin/Index");
+    app.MapControllerRoute("page", "Page{productPage:int}",
+        new { Controller = "Home", action = "Index", productPage = 1 });
 
-SeedData.EnsurePopulated(app);
+    app.MapControllerRoute("category", "{category}",
+        new { Controller = "Home", action = "Index", productPage = 1 });
 
-app.Run();
+    app.MapControllerRoute("pagination",
+        "Products/Page{productPage}",
+        new { Controller = "Home", action = "Index", productPage = 1 });
+
+    app.MapDefaultControllerRoute();
+    app.MapRazorPages();
+    app.MapBlazorHub();
+    app.MapFallbackToPage("/admin/{*catchall}", "/Admin/Index");
+
+    SeedData.EnsurePopulated(app);
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
