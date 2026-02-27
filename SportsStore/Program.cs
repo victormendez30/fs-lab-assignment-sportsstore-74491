@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Serilog.Context;
 using SportsStore.Models;
+using SportsStore.Infrastructure;
+using SportsStore.Services.Payments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,10 @@ try
     builder.Host.UseSerilog((context, services, loggerConfig) =>
         loggerConfig.ReadFrom.Configuration(context.Configuration)
                     .ReadFrom.Services(services));
+
+    builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
+    builder.Services.AddScoped<IPaymentService, StripePaymentService>();
 
     builder.Services.AddControllersWithViews();
 
@@ -37,6 +44,23 @@ try
     builder.Services.AddServerSideBlazor();
 
     var app = builder.Build();
+    app.Use(async (context, next) =>
+    {
+        // Use an incoming correlation id if provided, otherwise generate one
+        var correlationId =
+            context.Request.Headers.TryGetValue("X-Correlation-ID", out var incoming) && !string.IsNullOrWhiteSpace(incoming)
+                ? incoming.ToString()
+                : Guid.NewGuid().ToString("n");
+
+        // Return it to the caller for debugging/tracing
+        context.Response.Headers["X-Correlation-ID"] = correlationId;
+
+        // Put it into Serilog's LogContext so ALL logs in this request include it
+        using (LogContext.PushProperty("CorrelationId", correlationId))
+        {
+            await next();
+        }
+    });
 
     // Logs HTTP request info (method/path/status/elapsed), structured
     app.UseSerilogRequestLogging();

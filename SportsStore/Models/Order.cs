@@ -29,6 +29,12 @@ namespace SportsStore.Models {
         [Required(ErrorMessage = "Please enter a country name")]
         public string? Country { get; set; }
 
+        // Stripe payment confirmation data
+        public string? StripeCheckoutSessionId { get; set; }
+        public string? StripePaymentIntentId { get; set; }
+        public string? StripePaymentStatus { get; set; }
+        public DateTime? PaymentConfirmedAtUtc { get; set; }
+
         public bool GiftWrap { get; set; }
 
         [BindNever]
