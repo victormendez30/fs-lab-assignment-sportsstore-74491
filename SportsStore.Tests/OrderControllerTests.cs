@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace SportsStore.Tests
 {
@@ -27,6 +28,9 @@ namespace SportsStore.Tests
             var httpContext = new DefaultHttpContext();
             httpContext.Session = new TestSession();
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            controller.Url = Mock.Of<IUrlHelper>(u =>
+              u.Action(It.IsAny<UrlActionContext>()) == "https://localhost/fake-success");
 
             return controller;
         }
