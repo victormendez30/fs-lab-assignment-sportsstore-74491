@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace SportsStore.Models {
+namespace SportsStore.Models
+{
 
-    public class EFOrderRepository : IOrderRepository {
+    public class EFOrderRepository : IOrderRepository
+    {
         private StoreDbContext context;
 
-        public EFOrderRepository(StoreDbContext ctx) {
+        public EFOrderRepository(StoreDbContext ctx)
+        {
             context = ctx;
         }
 
@@ -13,9 +16,11 @@ namespace SportsStore.Models {
                             .Include(o => o.Lines)
                             .ThenInclude(l => l.Product);
 
-        public void SaveOrder(Order order) {
+        public void SaveOrder(Order order)
+        {
             context.AttachRange(order.Lines.Select(l => l.Product));
-            if (order.OrderID == 0) {
+            if (order.OrderID == 0)
+            {
                 context.Orders.Add(order);
             }
             context.SaveChanges();
