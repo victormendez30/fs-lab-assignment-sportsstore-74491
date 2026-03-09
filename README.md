@@ -1,112 +1,112 @@
-SportsStore – Enhanced ASP.NET Core Application
-Overview
+**SportsStore – Enhanced ASP.NET Core Application**
+**Overview**
 
 SportsStore is an ASP.NET Core web application for managing and purchasing sports products.
 This project was enhanced with several improvements including structured logging, Stripe payment integration, and a CI pipeline.
 
 The main objectives of these enhancements were to improve application observability, introduce secure payment processing, and automate build and test validation.
 
-Upgrade Steps
+**Upgrade Steps**
 
 The original project was upgraded with the following features.
 
-Structured Logging with Serilog
+**Structured Logging with Serilog**
 
 Serilog was integrated into the application to provide structured logging. Logging configuration is managed through the application configuration files.
 
 The following packages were added:
 
-Serilog.AspNetCore
+- Serilog.AspNetCore
 
-Serilog.Settings.Configuration
+- Serilog.Settings.Configuration
 
-Serilog.Sinks.Console
+- Serilog.Sinks.Console
 
-Serilog.Sinks.File
+- Serilog.Sinks.File
 
-Serilog.Sinks.Seq
+- Serilog.Sinks.Seq
 
-Serilog.Enrichers.Environment
+- Serilog.Enrichers.Environment
 
 Logging captures important events such as:
 
-Application startup
+- Application startup
 
-Checkout and payment flow
+- Checkout and payment flow
 
-Order creation
+- Order creation
 
-Exceptions and errors
+- Exceptions and errors
 
-HTTP request information
+- HTTP request information
 
 Logs are written to multiple destinations:
 
-Console output
+- Console output
 
-Rolling log files
+- Rolling log files
 
-Seq log server
+- Seq log server
 
 Additional log enrichment includes machine name, environment name, and correlation IDs to trace requests across the application.
 
-Stripe Payment Integration
+**Stripe Payment Integration**
 
 Stripe Checkout was integrated using the official Stripe .NET SDK.
 
 The Stripe package used:
 
-Stripe.net
+- Stripe.net
 
 A dedicated payment service was created to separate payment logic from the rest of the application:
 
-IPaymentService
+- IPaymentService
 
-StripePaymentService
+- StripePaymentService
 
 The checkout process works as follows:
 
-The user submits checkout details.
+1 The user submits checkout details.
 
-The application creates a Stripe Checkout Session.
+2 The application creates a Stripe Checkout Session.
 
-The user is redirected to the Stripe hosted payment page.
+3 The user is redirected to the Stripe hosted payment page.
 
-After payment, Stripe redirects the user back to the application.
+4 After payment, Stripe redirects the user back to the application.
 
-The application verifies the payment status.
+5 The application verifies the payment status.
 
-The order is saved only after payment confirmation.
+6 The order is saved only after payment confirmation.
 
 The system handles:
 
-Successful payments
+- Successful payments
 
-Cancelled payments
+- Cancelled payments
 
-Failed payments
+- Failed payments
 
-Order Model Enhancements
+**Order Model Enhancements**
 
 The Order model was extended to store Stripe payment confirmation details.
 
 The following fields were added:
 
-StripeCheckoutSessionId
+- StripeCheckoutSessionId
 
-StripePaymentIntentId
+- StripePaymentIntentId
 
-StripePaymentStatus
+- StripePaymentStatus
 
-PaymentConfirmedAtUtc
+- PaymentConfirmedAtUtc
 
 These fields ensure that payment confirmation is stored together with each order.
 
-Secure Stripe Configuration
+**Secure Stripe Configuration**
 
 Stripe API keys are not stored in the repository.
 
-For local development, Stripe keys are stored using User Secrets.
+For local development, Stripe keys are stored using **User Secrets**.
 
 Example setup:
 
@@ -116,17 +116,17 @@ dotnet user-secrets set "Stripe:PublishableKey" "pk_test_your_key"
 
 For production environments, environment variables should be used instead of user secrets.
 
-Logging Setup
+**Logging Setup**
 
 Logging is configured using Serilog through the application configuration files.
 
 Logs are written to:
 
-Console
+- Console
 
-Rolling file logs stored in the Logs directory
+- Rolling file logs stored in the Logs directory
 
-Seq server
+- Seq server
 
 Seq provides a web interface that allows developers to search and filter structured log events.
 
@@ -136,63 +136,63 @@ http://localhost:5341
 
 Example logged events include:
 
-Checkout submitted
+- Checkout submitted
 
-Stripe session created
+- Stripe session created
 
-Payment confirmed
+- Payment confirmed
 
-Order created
+- Order created
 
-Payment failures
+- Payment failures
 
 Structured properties recorded in logs include values such as OrderId, SessionId, PaymentIntentId, CartLineCount, and CorrelationId.
 
-How to Run Locally
+**How to Run Locally**
 Prerequisites
 
 Install the following software:
 
-.NET SDK 9.0
+- .NET SDK 9.0
 
-SQL Server LocalDB
+- SQL Server LocalDB
 
-Stripe account (test mode)
+- Stripe account (test mode)
 
-Seq (optional for log visualization)
+- Seq (optional for log visualization)
 
-1. Clone the Repository
+**1. Clone the Repository**
 
-git clone <repository-url>
-cd <repository-folder>
+_git clone <repository-url>
+cd <repository-folder>_
 
-2. Restore Dependencies
+**2. Restore Dependencies**
 
-dotnet restore
+_dotnet restore_
 
-3. Configure Stripe Test Keys
+**3. Configure Stripe Test Keys**
 
 Set the Stripe API keys using user secrets:
 
-dotnet user-secrets init
+_dotnet user-secrets init
 dotnet user-secrets set "Stripe:SecretKey" "sk_test_your_key"
 dotnet user-secrets set "Stripe:PublishableKey" "pk_test_your_key"
+_
+**4. Apply Database Migrations**
 
-4. Apply Database Migrations
-
-dotnet ef database update
+_dotnet ef database update_
 
 If Entity Framework tools are not installed:
 
-dotnet tool install --global dotnet-ef
+_dotnet tool install --global dotnet-ef_
 
-5. Run the Application
+**5. Run the Application**
 
-dotnet run --project SportsStore
+_dotnet run --project SportsStore_
 
 After running the application, open the URL displayed in the terminal or browser window.
 
-6. Test Stripe Payment
+**6. Test Stripe Payment**
 
 Use the Stripe test card number:
 
@@ -200,7 +200,7 @@ Use the Stripe test card number:
 
 Use any future expiry date and any three-digit CVC code.
 
-Continuous Integration
+**Continuous Integration**
 
 A GitHub Actions workflow was added to automate build and test validation.
 
@@ -210,34 +210,34 @@ Workflow file location:
 
 The pipeline performs the following steps:
 
-Restore project dependencies
+1 Restore project dependencies
 
-Build the solution
+2 Build the solution
 
-Run unit tests
+3 Run unit tests
 
-Upload test result artifacts
+4 Upload test result artifacts
 
 The pipeline runs automatically on:
 
-Pull requests targeting the main branch
+- Pull requests targeting the main branch
 
-Pushes to the main branch
+- Pushes to the main branch
 
 If tests fail, the workflow fails automatically.
 
-Summary
+**Summary**
 
 This project demonstrates the integration of structured logging, secure payment processing, and automated CI validation in an ASP.NET Core application.
 
 Key improvements include:
 
-Structured logging with Serilog
+- Structured logging with Serilog
 
-Payment processing with Stripe Checkout
+- Payment processing with Stripe Checkout
 
-Secure configuration of API keys
+- Secure configuration of API keys
 
-Automated CI pipeline using GitHub Actions
+- Automated CI pipeline using GitHub Actions
 
 These enhancements improve application reliability, maintainability, and observability.
